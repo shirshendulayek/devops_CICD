@@ -1,33 +1,39 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2867
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\deftab720
+\pard\pardeftab720\partightenfactor0
 
-\f0\fs24 \cf0 pipeline \{\
+\f0\fs26 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 pipeline \{\
     agent any\
-    environment \{\
-        DOCKER_IMAGE = "flask-app-local"\
-    \}\
+    \
     stages \{\
-        stage('Checkout') \{\
-            steps \{\
-                checkout scm\
-            \}\
-        \}\
         stage('Build Image') \{\
             steps \{\
-                sh "docker build -t $\{DOCKER_IMAGE\} ."\
+                script \{\
+                    echo 'Building Docker Image...'\
+                    // Build the image and tag it 'my-flask-app'\
+                    sh 'docker build -t my-flask-app .'\
+                \}\
             \}\
         \}\
-        stage('Deploy Local') \{\
+        \
+        stage('Deploy') \{\
             steps \{\
-                // Stop and remove old container if it exists\
-                sh "docker stop flask-container || true && docker rm flask-container || true"\
-                // Run new container\
-                sh "docker run -d -p 5000:5000 --name flask-container $\{DOCKER_IMAGE\}"\
+                script \{\
+                    echo 'Deploying Container...'\
+                    // 1. Stop the container if it's running (ignore errors if it's not)\
+                    sh 'docker stop flask-container || true'\
+                    // 2. Remove the container\
+                    sh 'docker rm flask-container || true'\
+                    // 3. Run the new container mapping port 5000\
+                    sh 'docker run -d -p 5000:5000 --name flask-container my-flask-app'\
+                \}\
             \}\
         \}\
     \}\
-\}}
+\}\
+}

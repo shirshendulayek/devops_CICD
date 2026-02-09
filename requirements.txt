@@ -1,5 +1,2 @@
-<<<<<<< HEAD
-flask
-=======
-flask
->>>>>>> acaa329 (added jjenkinsfile for scm)
+Flask==2.0.1
+Werkzeug==2.2.2
