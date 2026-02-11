@@ -1,39 +1,45 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2867
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;}
-{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
-{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\deftab720
-\pard\pardeftab720\partightenfactor0
+pipeline {
+    agent any
 
-\f0\fs26 \cf0 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 pipeline \{\
-    agent any\
-    \
-    stages \{\
-        stage('Build Image') \{\
-            steps \{\
-                script \{\
-                    echo 'Building Docker Image...'\
-                    // Build the image and tag it 'my-flask-app'\
-                    sh 'docker build -t my-flask-app .'\
-                \}\
-            \}\
-        \}\
-        \
-        stage('Deploy') \{\
-            steps \{\
-                script \{\
-                    echo 'Deploying Container...'\
-                    // 1. Stop the container if it's running (ignore errors if it's not)\
-                    sh 'docker stop flask-container || true'\
-                    // 2. Remove the container\
-                    sh 'docker rm flask-container || true'\
-                    // 3. Run the new container mapping port 5000\
-                    sh 'docker run -d -p 5000:5000 --name flask-container my-flask-app'\
-                \}\
-            \}\
-        \}\
-    \}\
-\}\
+    environment {
+        DOCKER_IMAGE = "flask-app:latest"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/<username>/flask-devops-pipeline.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh "docker build -t $DOCKER_IMAGE ."
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Stop any existing container
+                    sh "docker stop flask-container || true"
+                    sh "docker rm flask-container || true"
+                    // Run container
+                    sh "docker run -d -p 5000:5000 --name flask-container $DOCKER_IMAGE"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment successful! Visit http://localhost:5000"
+        }
+        failure {
+            echo "Deployment failed!"
+        }
+    }
 }
+
